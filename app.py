@@ -264,6 +264,11 @@ if st.sidebar.button("🔄 Reset Conversation", use_container_width=True):
 def get_sarvam_client():
     api_key = os.environ.get("SARVAM_API_KEY", "").strip()
     if not api_key:
+        try:
+            api_key = str(st.secrets.get("SARVAM_API_KEY", "")).strip()
+        except Exception:
+            pass
+    if not api_key:
         return None
     if "sarvam_client_instance" not in st.session_state or st.session_state.get("_cached_api_key") != api_key:
         try:
@@ -559,8 +564,15 @@ st.markdown('<div class="main-title">⚖️ Panchayat AI</div>', unsafe_allow_ht
 st.markdown('<div class="tagline">"A neutral voice before the argument escalates" — Village Elder Mediation</div>', unsafe_allow_html=True)
 
 # Status notification if API key is missing or fallback mode is active
-if not os.environ.get("SARVAM_API_KEY") and not demo_fallback:
-    st.warning("⚠️ `SARVAM_API_KEY` is not set in `.env`. Please paste your key or enable **Demo Fallback Mode** in the sidebar.")
+has_key = bool(os.environ.get("SARVAM_API_KEY", "").strip())
+if not has_key:
+    try:
+        has_key = bool(st.secrets.get("SARVAM_API_KEY", "").strip())
+    except Exception:
+        pass
+
+if not has_key and not demo_fallback:
+    st.warning("⚠️ `SARVAM_API_KEY` is not set in `.env` or Streamlit Secrets. Please configure your key or enable **Demo Fallback Mode** in the sidebar.")
 
 if demo_fallback:
     st.info("ℹ️ **Demo Fallback Mode is ON**: Using pre-baked sample responses for guaranteed demo reliability without API calls.")
